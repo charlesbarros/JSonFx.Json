@@ -34,61 +34,75 @@ using System.Reflection;
 namespace JsonFx.Json
 {
 	/// <summary>
-	/// Specifies the name of the property which specifies if member should be serialized.
+	/// Designates a property or field to not be serialized.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Property|AttributeTargets.Field, AllowMultiple=false)]
-	public class JsonSpecifiedPropertyAttribute : Attribute
+	[AttributeUsage(AttributeTargets.All, AllowMultiple=false)]
+	public sealed class JsonIgnoreAttribute : Attribute
 	{
-		#region Fields
-
-		private string specifiedProperty = null;
-
-		#endregion Fields
-
-		#region Init
-
-		/// <summary>
-		/// Ctor
-		/// </summary>
-		/// <param name="propertyName">the name of the property which controls serialization for this member</param>
-		public JsonSpecifiedPropertyAttribute(string propertyName)
-		{
-			this.specifiedProperty = propertyName;
-		}
-
-		#endregion Init
-
-		#region Properties
-
-		/// <summary>
-		/// Gets and sets the name of the property which
-		/// specifies if member should be serialized
-		/// </summary>
-		public string SpecifiedProperty
-		{
-			get { return this.specifiedProperty; }
-			set { this.specifiedProperty = value; }
-		}
-
-		#endregion Properties
-
 		#region Methods
 
 		/// <summary>
-		/// Gets the name specified for use in Json serialization.
+		/// Gets a value which indicates if should be ignored in Json serialization.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static string GetJsonSpecifiedProperty(MemberInfo memberInfo)
+		public static bool IsJsonIgnore(object value)
 		{
-			if (memberInfo == null ||
-				!Attribute.IsDefined(memberInfo, typeof(JsonSpecifiedPropertyAttribute)))
+			if (value == null)
 			{
-				return null;
+				return false;
 			}
 
-			JsonSpecifiedPropertyAttribute attribute = (JsonSpecifiedPropertyAttribute)Attribute.GetCustomAttribute(memberInfo, typeof(JsonSpecifiedPropertyAttribute));
-			return attribute.SpecifiedProperty;
+			Type type = value.GetType();
+
+			ICustomAttributeProvider provider = null;
+			if (type.IsEnum)
+			{
+				provider = type.GetField(Enum.GetName(type, value));
+			}
+			else
+			{
+				provider = value as ICustomAttributeProvider;
+			}
+
+			if (provider == null)
+			{
+				throw new ArgumentException();
+			}
+
+			return provider.IsDefined(typeof(JsonIgnoreAttribute), true);
+		}
+
+		/// <summary>
+		/// Gets a value which indicates if should be ignored in Json serialization.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static bool IsXmlIgnore(object value)
+		{
+			if (value == null)
+			{
+				return false;
+			}
+
+			Type type = value.GetType();
+
+			ICustomAttributeProvider provider = null;
+			if (type.IsEnum)
+			{
+				provider = type.GetField(Enum.GetName(type, value));
+			}
+			else
+			{
+				provider = value as ICustomAttributeProvider;
+			}
+
+			if (provider == null)
+			{
+				throw new ArgumentException();
+			}
+
+			return false;
 		}
 
 		#endregion Methods

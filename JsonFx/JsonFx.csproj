@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D5B8DF32-8581-42CA-87A7-61EFD17B1770}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>JsonFx</RootNamespace>
+    <AssemblyName>JsonFx</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="About.cs" />
+    <Compile Include="DataReaderProvider.cs" />
+    <Compile Include="DataWriterProvider.cs" />
+    <Compile Include="EcmaScriptIdentifier.cs" />
+    <Compile Include="EcmaScriptWriter.cs" />
+    <Compile Include="IDataReader.cs" />
+    <Compile Include="IDataWriter.cs" />
+    <Compile Include="IJsonSerializable.cs" />
+    <Compile Include="JsonDataReader.cs" />
+    <Compile Include="JsonDataWriter.cs" />
+    <Compile Include="JsonIgnoreAttribute.cs" />
+    <Compile Include="JsonNameAttribute.cs" />
+    <Compile Include="JsonReader.cs" />
+    <Compile Include="JsonReaderSettings.cs" />
+    <Compile Include="JsonSerializationException.cs" />
+    <Compile Include="JsonSpecifiedPropertyAttribute.cs" />
+    <Compile Include="JsonToken.cs" />
+    <Compile Include="JsonWriter.cs" />
+    <Compile Include="JsonWriterSettings.cs" />
+    <Compile Include="TypeCoercionUtility.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <None Include="JsonFx.csproj" />
+    <None Include="JsonFx.Json.csproj" />
+    <None Include="JsonFx.Json.pidb" />
+    <None Include="JsonFx.sln" />
+    <None Include="License.txt" />
+    <None Include="README.md" />
+    <None Include="Readme.txt" />
+  </ItemGroup>
+</Project>

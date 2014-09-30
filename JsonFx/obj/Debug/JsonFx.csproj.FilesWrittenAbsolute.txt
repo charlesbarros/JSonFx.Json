@@ -1,0 +1,5 @@
+/Users/admin/Documents/Projects/Personal/UnityJsonFx/JsonFx/obj/Debug/.NETFramework,Version=v4.5.AssemblyAttribute.cs
+/Users/admin/Documents/Projects/Personal/UnityJsonFx/JsonFx/bin/Debug/JsonFx.dll.mdb
+/Users/admin/Documents/Projects/Personal/UnityJsonFx/JsonFx/bin/Debug/JsonFx.dll
+/Users/admin/Documents/Projects/Personal/UnityJsonFx/JsonFx/obj/Debug/JsonFx.dll
+/Users/admin/Documents/Projects/Personal/UnityJsonFx/JsonFx/obj/Debug/JsonFx.dll.mdb
