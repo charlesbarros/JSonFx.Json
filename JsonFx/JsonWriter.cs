@@ -1041,91 +1041,11 @@ namespace JsonFx.Json
 					this.WriteObjectProperty(this.settings.TypeHintName, type.FullName+", "+type.Assembly.GetName().Name);
 				}
 
-				bool anonymousType = type.IsGenericType && type.Name.StartsWith(JsonWriter.AnonymousTypePrefix);
+				appendDelim = SerializeProperties(value, type, appendDelim, (BindingFlags.Instance | BindingFlags.Public));
+				appendDelim = SerializeProperties(value, type, appendDelim, (BindingFlags.Instance | BindingFlags.NonPublic));
 
-				// serialize public properties
-				PropertyInfo[] properties = type.GetProperties();
-				foreach (PropertyInfo property in properties)
-				{
-					if (!property.CanRead)
-					{
-						continue;
-					}
-
-					if (!property.CanWrite && !anonymousType)
-					{
-						continue;
-					}
-
-					if (this.IsIgnored(type, property, value))
-					{
-						continue;
-					}
-
-					object propertyValue = property.GetValue(value, null);
-					if (this.IsDefaultValue(property, propertyValue))
-					{
-						continue;
-					}
-
-					if (appendDelim)
-					{
-						this.WriteObjectPropertyDelim();
-					}
-					else
-					{
-						appendDelim = true;
-					}
-
-					// use Attributes here to control naming
-					string propertyName = JsonNameAttribute.GetJsonName(property);
-					if (String.IsNullOrEmpty(propertyName))
-					{
-						propertyName = property.Name;
-					}
-
-					this.WriteObjectProperty(propertyName, propertyValue);
-				}
-
-				// serialize public fields
-				FieldInfo[] fields = type.GetFields();
-				foreach (FieldInfo field in fields)
-				{
-					if (!field.IsPublic || field.IsStatic)
-					{
-						continue;
-					}
-
-					if (this.IsIgnored(type, field, value))
-					{
-						continue;
-					}
-
-					object fieldValue = field.GetValue(value);
-					if (this.IsDefaultValue(field, fieldValue))
-					{
-						continue;
-					}
-
-					if (appendDelim)
-					{
-						this.WriteObjectPropertyDelim();
-						this.WriteLine();
-					}
-					else
-					{
-						appendDelim = true;
-					}
-
-					// use Attributes here to control naming
-					string fieldName = JsonNameAttribute.GetJsonName(field);
-					if (String.IsNullOrEmpty(fieldName))
-					{
-						fieldName = field.Name;
-					}
-
-					this.WriteObjectProperty(fieldName, fieldValue);
-				}
+				appendDelim = SerializeFields(value, type, appendDelim, (BindingFlags.Instance | BindingFlags.Public));
+				appendDelim = SerializeFields(value, type, appendDelim, (BindingFlags.Instance | BindingFlags.NonPublic));
 			}
 			finally
 			{
@@ -1137,6 +1057,118 @@ namespace JsonFx.Json
 				this.WriteLine();
 			}
 			this.Writer.Write(JsonReader.OperatorObjectEnd);
+		}
+
+		bool SerializeProperties(object value, Type type, bool appendDelim, BindingFlags bindingFlags)
+		{
+			// serialize public properties
+			bool anonymousType = type.IsGenericType && type.Name.StartsWith(JsonWriter.AnonymousTypePrefix);
+
+			PropertyInfo[] properties = type.GetProperties(bindingFlags);
+			foreach (PropertyInfo property in properties)
+			{
+				if (!property.CanRead)
+				{
+					continue;
+				}
+
+				if (!property.CanWrite && !anonymousType)
+				{
+					continue;
+				}
+
+				if (this.IsIgnored(type, property, value))
+				{
+					continue;
+				}
+
+				if (bindingFlags == (BindingFlags.Instance | BindingFlags.NonPublic)) 
+				{
+					if (this.ShouldSerializeNonPublicProperty(type, property, value) == false) 
+					{
+						continue;
+					}
+				}
+
+				object propertyValue = property.GetValue(value, null);
+				if (this.IsDefaultValue(property, propertyValue))
+				{
+					continue;
+				}
+
+				if (appendDelim)
+				{
+					this.WriteObjectPropertyDelim();
+				}
+				else
+				{
+					appendDelim = true;
+				}
+
+				// use Attributes here to control naming
+				string propertyName = JsonNameAttribute.GetJsonName(property);
+				if (String.IsNullOrEmpty(propertyName))
+				{
+					propertyName = property.Name;
+				}
+
+				this.WriteObjectProperty(propertyName, propertyValue);
+			}
+
+			return appendDelim;
+		}
+
+		bool SerializeFields(object value, Type type, bool appendDelim, BindingFlags bindingFlags)
+		{
+			// serialize public fields
+			FieldInfo[] fields = type.GetFields();
+			foreach (FieldInfo field in fields)
+			{
+				if (!field.IsPublic || field.IsStatic)
+				{
+					continue;
+				}
+
+				if (this.IsIgnored(type, field, value))
+				{
+					continue;
+				}
+
+				if (bindingFlags == (BindingFlags.Instance | BindingFlags.NonPublic)) 
+				{
+					if (this.ShouldSerializeNonPublicProperty(type, field, value) == false) 
+					{
+						continue;
+					}
+				}
+
+				object fieldValue = field.GetValue(value);
+				if (this.IsDefaultValue(field, fieldValue))
+				{
+					continue;
+				}
+
+				if (appendDelim)
+				{
+					this.WriteObjectPropertyDelim();
+					this.WriteLine();
+				}
+				else
+				{
+					appendDelim = true;
+				}
+
+				// use Attributes here to control naming
+				string fieldName = JsonNameAttribute.GetJsonName(field);
+				if (String.IsNullOrEmpty(fieldName))
+				{
+					fieldName = field.Name;
+				}
+
+				this.WriteObjectProperty(fieldName, fieldValue);
+			}
+
+			return appendDelim;
 		}
 
 		protected virtual void WriteArrayItemDelim()
@@ -1166,6 +1198,25 @@ namespace JsonFx.Json
 		#endregion Writer Methods
 
 		#region Private Methods
+		/// <summary>
+		/// Determines if the non-public property shoulds be serialized.
+		/// </summary>
+		/// <returns><c>true</c>, if serialize non public property was shoulded, <c>false</c> otherwise.</returns>
+		/// <param name="objType"></param>
+		/// <param name="member"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		private bool ShouldSerializeNonPublicProperty(Type objType, MemberInfo member, object obj)
+		{
+			string specifiedProperty = JsonSpecifiedPropertyAttribute.GetJsonSpecifiedProperty(member);
+
+			if (!String.IsNullOrEmpty(specifiedProperty) && member.Name == specifiedProperty)
+			{
+				return true;
+			}
+
+			return false;
+		}
 
 		/// <summary>
 		/// Determines if the property or field should not be serialized.
@@ -1184,20 +1235,6 @@ namespace JsonFx.Json
 			if (JsonIgnoreAttribute.IsJsonIgnore(member))
 			{
 				return true;
-			}
-
-			string specifiedProperty = JsonSpecifiedPropertyAttribute.GetJsonSpecifiedProperty(member);
-			if (!String.IsNullOrEmpty(specifiedProperty))
-			{
-				PropertyInfo specProp = objType.GetProperty(specifiedProperty);
-				if (specProp != null)
-				{
-					object isSpecified = specProp.GetValue(obj, null);
-					if (isSpecified is Boolean && !Convert.ToBoolean(isSpecified))
-					{
-						return true;
-					}
-				}
 			}
 
 			if (this.settings.UseXmlSerializationAttributes)

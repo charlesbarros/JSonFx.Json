@@ -60,7 +60,5 @@
     <None Include="JsonFx.Json.pidb" />
     <None Include="JsonFx.sln" />
     <None Include="License.txt" />
-    <None Include="README.md" />
-    <None Include="Readme.txt" />
   </ItemGroup>
 </Project>
